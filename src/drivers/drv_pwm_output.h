@@ -246,7 +246,8 @@ struct pwm_output_rc_config {
 
 /** surfaces to move regardless of the safety state */
 #define PWM_SERVO_IGNORE_SAFETY			_PX4_IOC(_PWM_SERVO_BASE, 32)
-
+//jiva add pwm actuators cmd
+#define PWM_ACTUATORS_CNT                      	_PX4_IOC(_PWM_SERVO_BASE, 33)
 /** set auxillary output mode. These correspond to enum Mode in px4fmu/fmu.cpp */
 #define PWM_SERVO_MODE_NONE			0
 #define PWM_SERVO_MODE_2PWM			1

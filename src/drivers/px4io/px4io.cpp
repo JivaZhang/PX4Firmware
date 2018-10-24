@@ -3004,7 +3004,10 @@ PX4IO::ioctl(file *filep, int cmd, unsigned long arg)
 		/* clear the 'OVERRIDE OK' bit */
 		ret = io_reg_modify(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, PX4IO_P_SETUP_ARMING_MANUAL_OVERRIDE_OK, 0);
 		break;
-
+        //jiva add get actuators_cnt;
+        case PWM_ACTUATORS_CNT:
+               *(unsigned*)arg =  io_reg_get(PX4IO_PAGE_CONFIG,PX4IO_P_CONFIG_ACTUATOR_COUNT);
+               break;
 	default:
 		/* see if the parent class can make any use of it */
 		ret = CDev::ioctl(filep, cmd, arg);
@@ -3018,17 +3021,27 @@ ssize_t
 PX4IO::write(file * /*filp*/, const char *buffer, size_t len)
 /* Make it obvious that file * isn't used here */
 {
-	unsigned count = len / 2;
-
-	if (count > _max_actuators) {
-		count = _max_actuators;
+	unsigned count = len;
+	if (count > (_max_actuators+_max_servos)) {
+	    count = _max_actuators + _max_servos;
 	}
-
+          
+        count = len / 2;
 	if (count > 0) {
 
 		perf_begin(_perf_write);
-		int ret = io_reg_set(PX4IO_PAGE_DIRECT_PWM, 0, (uint16_t *)buffer, count);
-		perf_end(_perf_write);
+		int ret = io_reg_set(PX4IO_PAGE_DIRECT_PWM,0, (uint16_t *)buffer, _max_servos);
+                if(count > _max_servos)
+                {
+                    ret = io_reg_set(PX4IO_PAGE_DISARMED_PWM,0,(uint16_t*)(buffer+_max_servos*2),count - _max_servos);
+                }
+               // uint16_t* p = (uint16_t*)buffer;
+               // for(uint8_t i = 0; i < count;i++,p++)
+               // {
+
+               //      printf("buffer[%d] = %d\n",i+1,*p);
+               // }
+                perf_end(_perf_write);
 
 		if (ret != OK) {
 			return ret;
